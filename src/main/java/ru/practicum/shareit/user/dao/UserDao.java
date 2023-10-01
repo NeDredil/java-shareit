@@ -4,8 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.exception.EmailExistException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.user.UserMapper;
-import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.Collection;
@@ -18,8 +16,7 @@ public class UserDao {
     private long lastId = 0;
     private final Map<Long, User> users = new HashMap<>();
 
-    public User create(UserDto userDto) {
-        User user = UserMapper.toUser(userDto);
+    public User create(User user) {
         if (checkEmail(user)) {
             log.warn("Пользователь с email: {} уже существует.", user.getEmail());
             throw new EmailExistException("Email duplicate error");

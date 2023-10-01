@@ -1,4 +1,4 @@
-package ru.practicum.shareit;
+package ru.practicum.shareit.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MissingRequestHeaderException;
@@ -12,7 +12,6 @@ import ru.practicum.shareit.exception.NotOwnerException;
 
 @RestControllerAdvice
 public class ErrorHandler {
-
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)

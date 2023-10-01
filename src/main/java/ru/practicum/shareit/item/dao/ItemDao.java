@@ -42,21 +42,21 @@ public class ItemDao {
         return userItems;
     }
 
-    public Item update(long userId, long itemId, ItemDto itemDto) {
+    public Item update(long userId, long itemId, Item item) {
         isExist(itemId);
         if (!isOwner(userId, itemId)) {
             log.warn("Пользователь с id: {} не является владельцем вещи.", userId);
             throw new NotOwnerException("The user is not the owner of the item");
         }
         Item updatedItem = items.get(itemId);
-        if (itemDto.getName() != null) {
-            updatedItem.setName(itemDto.getName());
+        if (item.getName() != null) {
+            updatedItem.setName(item.getName());
         }
-        if (itemDto.getDescription() != null) {
-            updatedItem.setDescription(itemDto.getDescription());
+        if (item.getDescription() != null) {
+            updatedItem.setDescription(item.getDescription());
         }
-        if (itemDto.getAvailable() != null) {
-            updatedItem.setAvailable(itemDto.getAvailable());
+        if (item.getAvailable() != null) {
+            updatedItem.setAvailable(item.getAvailable());
         }
         log.debug("Вещь с id: {} обновлена.", itemId);
         return updatedItem;
@@ -69,13 +69,13 @@ public class ItemDao {
         }
     }
 
-    public List<Item> search(long userId, String text) {
+    public List<Item> search(String text) {
         if (text.isBlank() || text.isEmpty()) {
             return List.of();
         }
         final String textLowerCase = text.toLowerCase();
         return items.values().stream()
-                .filter(Item::isAvailable)
+                .filter(Item::getAvailable)
                 .filter(item -> item.getName().toLowerCase().contains(textLowerCase) ||
                         item.getDescription().toLowerCase().contains(textLowerCase))
                 .collect(Collectors.toList());

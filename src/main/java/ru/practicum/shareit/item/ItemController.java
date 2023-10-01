@@ -2,10 +2,11 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.model.Item;
 
+import javax.validation.Valid;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,7 +20,7 @@ public class ItemController {
 
     @PostMapping
     public ItemDto create(@RequestHeader("X-Sharer-User-Id") Long userId,
-                          @RequestBody @Validated ItemDto itemDto) {
+                          @RequestBody @Valid ItemDto itemDto) {
         log.debug("{} create", this.getClass().getName());
         return ItemMapper.toItemDtoForOwner(itemService.create(userId, itemDto));
     }
@@ -40,9 +41,9 @@ public class ItemController {
     @PatchMapping("/{itemId}")
     public ItemDto update(@RequestHeader("X-Sharer-User-Id") Long userId,
                           @PathVariable long itemId,
-                          @RequestBody ItemDto itemDto) {
+                          @RequestBody Item item) {
         log.debug("{} update", this.getClass().getName());
-        return ItemMapper.toItemDto(itemService.update(userId, itemId, itemDto));
+        return ItemMapper.toItemDto(itemService.update(userId, itemId, item));
     }
 
     @DeleteMapping("/{itemId}")
@@ -53,10 +54,9 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemDto> search(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                @RequestParam String text) {
+    public List<ItemDto> search(@RequestParam String text) {
         log.debug("{} search({})", this.getClass().getName(), text);
-        return itemService.search(userId, text).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
+        return itemService.search(text).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
     }
 
 }

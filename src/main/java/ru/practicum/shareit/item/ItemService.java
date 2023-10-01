@@ -14,10 +14,10 @@ public interface ItemService {
 
     Collection<Item> readAll(long userId);
 
-    Item update(long userId, long itemId, ItemDto itemDto);
+    Item update(long userId, long itemId, Item item);
 
     void delete(long userId, long itemId);
 
-    List<Item> search(long userId, String text);
+    List<Item> search(String text);
 
 }

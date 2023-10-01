@@ -29,17 +29,17 @@ public class ItemServiceImpl implements ItemService {
         return itemDao.readAll(userId);
     }
 
-    public Item update(long userId, long itemId, ItemDto itemDto) {
+    public Item update(long userId, long itemId, Item item) {
         userDao.isExist(userId);
-        return itemDao.update(userId, itemId, itemDto);
+        return itemDao.update(userId, itemId, item);
     }
 
     public void delete(long userId, long itemId) {
         itemDao.delete(userId, itemId);
     }
 
-    public List<Item> search(long userId, String text) {
-        return itemDao.search(userId, text);
+    public List<Item> search(String text) {
+        return itemDao.search(text);
     }
 
 }
