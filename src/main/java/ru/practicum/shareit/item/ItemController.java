@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.model.Item;
 
 import javax.validation.Valid;
 import java.util.Collection;
@@ -19,44 +18,43 @@ public class ItemController {
     private final ItemService itemService;
 
     @PostMapping
-    public ItemDto create(@RequestHeader("X-Sharer-User-Id") Long userId,
-                          @RequestBody @Valid ItemDto itemDto) {
-        log.debug("{} create", this.getClass().getName());
-        return ItemMapper.toItemDtoForOwner(itemService.create(userId, itemDto));
+    public ItemDto createItem(@RequestHeader("X-Sharer-User-Id") Long userId,
+                              @RequestBody @Valid ItemDto itemDto) {
+        log.debug("поступил запрос на добавление вещи:" + itemDto + " пользователем: " + userId);
+        return ItemMapper.toItemDtoForOwner(itemService.createItem(userId, itemDto));
     }
 
     @GetMapping("/{itemId}")
-    public ItemDto read(@RequestHeader("X-Sharer-User-Id") Long userId,
-                        @PathVariable long itemId) {
-        log.debug("{} read", this.getClass().getName());
-        return ItemMapper.toItemDto(itemService.read(userId, itemId));
+    public ItemDto findItemById(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                @PathVariable long itemId) {
+        log.debug("поступил запрос на просмотр вещи по идентификатору: " + itemId);
+        return ItemMapper.toItemDto(itemService.findItemById(userId, itemId));
     }
 
     @GetMapping
-    public Collection<ItemDto> readAll(@RequestHeader("X-Sharer-User-Id") Long userId) {
-        log.debug("{} readAll", this.getClass().getName());
-        return itemService.readAll(userId).stream().map(ItemMapper::toItemDtoForOwner).collect(Collectors.toList());
+    public Collection<ItemDto> findAllItemsByUserId(@RequestHeader("X-Sharer-User-Id") Long userId) {
+        log.debug("поступил запрос на просмотр владельцем всех своих вещей, idUser=" + userId);
+        return itemService.findAllItemsByUserId(userId).stream().map(ItemMapper::toItemDtoForOwner).collect(Collectors.toList());
     }
 
     @PatchMapping("/{itemId}")
-    public ItemDto update(@RequestHeader("X-Sharer-User-Id") Long userId,
-                          @PathVariable long itemId,
-                          @RequestBody Item item) {
-        log.debug("{} update", this.getClass().getName());
-        return ItemMapper.toItemDto(itemService.update(userId, itemId, item));
+    public ItemDto updateItem(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable long itemId,
+                              @RequestBody ItemDto itemDto) {
+        log.debug("поступил запрос на редактирование вещи:" + itemDto + " владельцем:" + userId);
+        return ItemMapper.toItemDto(itemService.updateItem(userId, itemId, itemDto));
     }
 
     @DeleteMapping("/{itemId}")
-    public void delete(@RequestHeader("X-Sharer-User-Id") Long userId,
-                       @PathVariable long itemId) {
-        log.debug("{} delete({})", this.getClass().getName(), itemId);
-        itemService.delete(userId, itemId);
+    public void deleteItemById(@RequestHeader("X-Sharer-User-Id") Long userId,
+                               @PathVariable long itemId) {
+        log.debug("поступил запрос на удаление вещи c id: " + itemId);
+        itemService.deleteItemById(userId, itemId);
     }
 
     @GetMapping("/search")
-    public List<ItemDto> search(@RequestParam String text) {
-        log.debug("{} search({})", this.getClass().getName(), text);
-        return itemService.search(text).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
+    public List<ItemDto> getItemsBySearchQuery(@RequestParam String text) {
+        log.debug("поступил запрос на просмотр доступной для аренды вещи: " + text);
+        return itemService.getItemsBySearchQuery(text).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
     }
 
 }

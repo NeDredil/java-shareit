@@ -16,7 +16,7 @@ public class UserDao {
     private long lastId = 0;
     private final Map<Long, User> users = new HashMap<>();
 
-    public User create(User user) {
+    public User createUser(User user) {
         if (checkEmail(user)) {
             log.warn("Пользователь с email: {} уже существует.", user.getEmail());
             throw new EmailExistException("Email duplicate error");
@@ -27,21 +27,21 @@ public class UserDao {
         return user;
     }
 
-    public User read(long userId) {
+    public User findUserById(long userId) {
         log.debug("Пользователь с id: {} найден.", userId);
         return users.get(userId);
     }
 
-    public Collection<User> readAll() {
+    public Collection<User> findAllUsers() {
         log.debug("Всего пользователей: {}.", users.values().size());
         return users.values();
     }
 
-    public User update(long userId, User user) {
-        isExist(userId);
-        User updatedUser = users.get(userId);
+    public User updateUser(User user) {
+        isExist(user.getId());
+        User updatedUser = users.get(user.getId());
         if (user.getEmail() != null) {
-            users.remove(userId);
+            users.remove(user.getId());
             if (checkEmail(user)) {
                 users.put(updatedUser.getId(), updatedUser);
                 log.warn("Пользователь с email: {} уже существует.", user.getEmail());
@@ -53,11 +53,11 @@ public class UserDao {
             updatedUser.setName(user.getName());
         }
         users.put(updatedUser.getId(), updatedUser);
-        log.debug("Пользователь с id: {} обновлен.", userId);
+        log.debug("Пользователь с id: {} обновлен.", user.getId());
         return updatedUser;
     }
 
-    public void delete(long userId) {
+    public void deleteUserById(long userId) {
         isExist(userId);
         users.remove(userId);
         log.debug("Пользователь с id: {} удален.", userId);

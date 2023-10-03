@@ -2,10 +2,6 @@ package ru.practicum.shareit.item.dao;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.NotOwnerException;
-import ru.practicum.shareit.item.ItemMapper;
-import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.Collection;
@@ -18,23 +14,19 @@ import java.util.stream.Collectors;
 @Component
 public class ItemDao {
     private final Map<Long, Item> items = new HashMap<>();
-    private long lastId = 0;
 
-    public Item create(long userId, ItemDto itemDto) {
-        Item item = ItemMapper.toItem(itemDto);
-        item.setId(getId());
-        item.setOwner(userId);
+    public Item createItem(Item item) {
         items.put(item.getId(), item);
         log.debug("Вещь создана.");
         return item;
     }
 
-    public Item read(long itemId) {
+    public Item findItemById(long itemId) {
         log.debug("Вещь с id: {} найдена.", itemId);
         return items.get(itemId);
     }
 
-    public Collection<Item> readAll(long userId) {
+    public Collection<Item> findAllItemsByUserId(long userId) {
         Collection<Item> userItems = items.values().stream()
                 .filter(item -> item.getOwner() == userId)
                 .collect(Collectors.toList());
@@ -42,13 +34,8 @@ public class ItemDao {
         return userItems;
     }
 
-    public Item update(long userId, long itemId, Item item) {
-        isExist(itemId);
-        if (!isOwner(userId, itemId)) {
-            log.warn("Пользователь с id: {} не является владельцем вещи.", userId);
-            throw new NotOwnerException("The user is not the owner of the item");
-        }
-        Item updatedItem = items.get(itemId);
+    public Item updateItem(Item item) {
+        Item updatedItem = items.get(item.getId());
         if (item.getName() != null) {
             updatedItem.setName(item.getName());
         }
@@ -58,42 +45,21 @@ public class ItemDao {
         if (item.getAvailable() != null) {
             updatedItem.setAvailable(item.getAvailable());
         }
-        log.debug("Вещь с id: {} обновлена.", itemId);
+        log.debug("Вещь с id: {} обновлена.", item.getId());
         return updatedItem;
     }
 
-    public void delete(long userId, long itemId) {
-        isExist(itemId);
-        if (isOwner(userId, itemId)) {
-            items.remove(itemId);
-        }
+    public void deleteItemById(long itemId) {
+        items.remove(itemId);
     }
 
-    public List<Item> search(String text) {
-        if (text.isBlank() || text.isEmpty()) {
-            return List.of();
-        }
+    public List<Item> getItemsBySearchQuery(String text) {
         final String textLowerCase = text.toLowerCase();
         return items.values().stream()
                 .filter(Item::getAvailable)
                 .filter(item -> item.getName().toLowerCase().contains(textLowerCase) ||
                         item.getDescription().toLowerCase().contains(textLowerCase))
                 .collect(Collectors.toList());
-    }
-
-    private long getId() {
-        return ++lastId;
-    }
-
-    private void isExist(long itemId) {
-        if (!items.containsKey(itemId)) {
-            log.warn("Вещь с id: {} не найдена.", itemId);
-            throw new NotFoundException("Item not found");
-        }
-    }
-
-    private boolean isOwner(long userId, long itemId) {
-        return userId == items.get(itemId).getOwner();
     }
 
 }

@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.model.User;
 
 import javax.validation.Valid;
 import java.util.Collection;
@@ -18,33 +17,33 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public UserDto create(@RequestBody @Valid User user) {
-        log.debug("{} create", this.getClass().getName());
-        return UserMapper.toUserDto(userService.create(user));
+    public UserDto createUser(@RequestBody @Valid UserDto userDto) {
+        log.debug("поступил запрос на создание пользователя");
+        return UserMapper.toUserDto(userService.createUser(userDto));
     }
 
     @GetMapping("/{userId}")
-    public UserDto read(@PathVariable long userId) {
-        log.debug("{} read({})", this.getClass().getName(), userId);
-        return UserMapper.toUserDto(userService.read(userId));
+    public UserDto findUserById(@PathVariable long userId) {
+        log.debug("поступил запрос на получение данных пользователя c id: ", userId);
+        return UserMapper.toUserDto(userService.findUserById(userId));
     }
 
     @GetMapping
-    public Collection<UserDto> readAll() {
-        log.debug("{} readAll", this.getClass().getName());
-        return userService.readAll().stream().map(UserMapper::toUserDto).collect(Collectors.toList());
+    public Collection<UserDto> findAllUsers() {
+        log.debug("поступил запрос на получение данных всех пользователей");
+        return userService.findAllUsers().stream().map(UserMapper::toUserDto).collect(Collectors.toList());
     }
 
     @PatchMapping("/{userId}")
-    public UserDto update(@PathVariable long userId, @RequestBody User user) {
-        log.debug("{} update({})", this.getClass().getName(), userId);
-        return UserMapper.toUserDto(userService.update(userId, user));
+    public UserDto updateUser(@PathVariable long userId, @RequestBody UserDto userDto) {
+        log.debug("поступил запрос на изменение данных пользователя c id: ", userId);
+        return UserMapper.toUserDto(userService.updateUser(userId, userDto));
     }
 
     @DeleteMapping("/{userId}")
-    public void delete(@PathVariable long userId) {
-        log.debug("{} delete({})", this.getClass().getName(), userId);
-        userService.delete(userId);
+    public void deleteUserById(@PathVariable long userId) {
+        log.debug("поступил запрос на удаление данных пользователя c id: ", userId);
+        userService.deleteUserById(userId);
     }
 
 }

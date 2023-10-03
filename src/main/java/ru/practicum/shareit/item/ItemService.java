@@ -8,16 +8,16 @@ import java.util.List;
 
 public interface ItemService {
 
-    Item create(long userId, ItemDto itemDto);
+    Item createItem(long userId, ItemDto itemDto);
 
-    Item read(long userId, long itemId);
+    Item findItemById(long userId, long itemId);
 
-    Collection<Item> readAll(long userId);
+    Collection<Item> findAllItemsByUserId(long userId);
 
-    Item update(long userId, long itemId, Item item);
+    Item updateItem(Long userId, long itemId, ItemDto itemDto);
 
-    void delete(long userId, long itemId);
+    void deleteItemById(long userId, long itemId);
 
-    List<Item> search(String text);
+    List<Item> getItemsBySearchQuery(String text);
 
 }
