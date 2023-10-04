@@ -14,28 +14,28 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleEmailExistException(final EmailExistException e) {
-        log.debug(e.getMessage());
+        log.error(e.getMessage());
         return new ErrorResponse("Email уже существует");
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotOwnerException(final NotOwnerException e) {
-        log.debug(e.getMessage());
+        log.error(e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFoundException(final NotFoundException e) {
-        log.debug(e.getMessage());
+        log.error(e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleMissingRequestHeaderException(final MissingRequestHeaderException e) {
-        log.debug(e.getMessage());
+        log.error(e.getMessage());
         return new ErrorResponse("Отсутствует заголовок запроса.");
     }
 

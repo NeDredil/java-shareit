@@ -14,7 +14,7 @@ public interface ItemService {
 
     Collection<Item> findAllItemsByUserId(long userId);
 
-    Item updateItem(Long userId, long itemId, ItemDto itemDto);
+    Item updateItem(Long userId, ItemDto itemDto);
 
     void deleteItemById(long userId, long itemId);
 

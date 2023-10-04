@@ -35,18 +35,8 @@ public class ItemDao {
     }
 
     public Item updateItem(Item item) {
-        Item updatedItem = items.get(item.getId());
-        if (item.getName() != null) {
-            updatedItem.setName(item.getName());
-        }
-        if (item.getDescription() != null) {
-            updatedItem.setDescription(item.getDescription());
-        }
-        if (item.getAvailable() != null) {
-            updatedItem.setAvailable(item.getAvailable());
-        }
         log.debug("Вещь с id: {} обновлена.", item.getId());
-        return updatedItem;
+        return item;
     }
 
     public void deleteItemById(long itemId) {

@@ -20,34 +20,37 @@ public class ItemController {
     @PostMapping
     public ItemDto createItem(@RequestHeader("X-Sharer-User-Id") Long userId,
                               @RequestBody @Valid ItemDto itemDto) {
-        log.debug("поступил запрос на добавление вещи:" + itemDto + " пользователем: " + userId);
+        log.debug("поступил запрос на добавление вещи:" + itemDto + " пользователем c id: {} " + userId);
         return ItemMapper.toItemDtoForOwner(itemService.createItem(userId, itemDto));
     }
 
     @GetMapping("/{itemId}")
     public ItemDto findItemById(@RequestHeader("X-Sharer-User-Id") Long userId,
                                 @PathVariable long itemId) {
-        log.debug("поступил запрос на просмотр вещи по идентификатору: " + itemId);
+        log.debug("поступил запрос на просмотр вещи по идентификатору id: {}  " + itemId);
         return ItemMapper.toItemDto(itemService.findItemById(userId, itemId));
     }
 
     @GetMapping
     public Collection<ItemDto> findAllItemsByUserId(@RequestHeader("X-Sharer-User-Id") Long userId) {
-        log.debug("поступил запрос на просмотр владельцем всех своих вещей, idUser=" + userId);
+        log.debug("поступил запрос на просмотр владельцем всех своих вещей, id: {} " + userId);
         return itemService.findAllItemsByUserId(userId).stream().map(ItemMapper::toItemDtoForOwner).collect(Collectors.toList());
     }
 
     @PatchMapping("/{itemId}")
     public ItemDto updateItem(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable long itemId,
                               @RequestBody ItemDto itemDto) {
-        log.debug("поступил запрос на редактирование вещи:" + itemDto + " владельцем:" + userId);
-        return ItemMapper.toItemDto(itemService.updateItem(userId, itemId, itemDto));
+        log.debug("поступил запрос на редактирование вещи:" + itemDto + " владельцем c id: {} " + userId);
+        if (itemDto.getId() == null) {
+            itemDto.setId(itemId);
+        }
+        return ItemMapper.toItemDto(itemService.updateItem(userId, itemDto));
     }
 
     @DeleteMapping("/{itemId}")
     public void deleteItemById(@RequestHeader("X-Sharer-User-Id") Long userId,
                                @PathVariable long itemId) {
-        log.debug("поступил запрос на удаление вещи c id: " + itemId);
+        log.debug("поступил запрос на удаление вещи c id: {} " + itemId);
         itemService.deleteItemById(userId, itemId);
     }
 

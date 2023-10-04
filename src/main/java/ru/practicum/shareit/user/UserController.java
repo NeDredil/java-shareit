@@ -24,7 +24,7 @@ public class UserController {
 
     @GetMapping("/{userId}")
     public UserDto findUserById(@PathVariable long userId) {
-        log.debug("поступил запрос на получение данных пользователя c id: ", userId);
+        log.debug("поступил запрос на получение данных пользователя c id: {} ", userId);
         return UserMapper.toUserDto(userService.findUserById(userId));
     }
 
@@ -36,13 +36,14 @@ public class UserController {
 
     @PatchMapping("/{userId}")
     public UserDto updateUser(@PathVariable long userId, @RequestBody UserDto userDto) {
-        log.debug("поступил запрос на изменение данных пользователя c id: ", userId);
-        return UserMapper.toUserDto(userService.updateUser(userId, userDto));
+        log.debug("поступил запрос на изменение данных пользователя c id: {} ", userId);
+        userDto.setId(userId);
+        return UserMapper.toUserDto(userService.updateUser(userDto));
     }
 
     @DeleteMapping("/{userId}")
     public void deleteUserById(@PathVariable long userId) {
-        log.debug("поступил запрос на удаление данных пользователя c id: ", userId);
+        log.debug("поступил запрос на удаление данных пользователя c id: {} ", userId);
         userService.deleteUserById(userId);
     }
 

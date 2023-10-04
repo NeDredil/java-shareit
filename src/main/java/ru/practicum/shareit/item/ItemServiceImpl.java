@@ -34,15 +34,21 @@ public class ItemServiceImpl implements ItemService {
         return itemDao.findAllItemsByUserId(userId);
     }
 
-    public Item updateItem(Long userId, long itemId, ItemDto itemDto) {
-        if (itemDto.getId() == null) {
-            itemDto.setId(itemId);
-        }
-        Item item = itemDao.findItemById(itemId);
-        if (!item.getOwner().equals(userId)) {
+    public Item updateItem(Long userId, ItemDto itemDto) {
+        Item updatedItem = itemDao.findItemById(itemDto.getId());
+        if (!updatedItem.getOwner().equals(userId)) {
             throw new NotOwnerException("The user is not the owner of the item");
         }
-        return itemDao.updateItem(ItemMapper.toItem(itemDto));
+        if (itemDto.getName() != null) {
+            updatedItem.setName(itemDto.getName());
+        }
+        if (itemDto.getDescription() != null) {
+            updatedItem.setDescription(itemDto.getDescription());
+        }
+        if (itemDto.getAvailable() != null) {
+            updatedItem.setAvailable(itemDto.getAvailable());
+        }
+        return itemDao.updateItem(updatedItem);
     }
 
     public void deleteItemById(long userId, long itemId) {

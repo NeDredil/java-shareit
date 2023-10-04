@@ -13,7 +13,7 @@ public interface UserService {
 
     Collection<User> findAllUsers();
 
-    User updateUser(long userId, UserDto userDto);
+    User updateUser(UserDto userDto);
 
     void deleteUserById(long userId);
 
