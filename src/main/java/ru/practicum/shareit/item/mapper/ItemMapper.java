@@ -50,18 +50,15 @@ public class ItemMapper {
         if (bookings != null && !bookings.isEmpty()) {
             LocalDateTime time = LocalDateTime.now();
 
-            Optional<Booking> last = bookings.stream()
+            bookings.stream()
                     .filter(booking -> booking.getStart().isBefore(time))
-                    .max(Comparator.comparing(Booking::getEnd));
+                    .max(Comparator.comparing(Booking::getEnd))
+                    .ifPresent(booking -> itemDto.setLastBooking(BookingMapper.toLittleBookingDto(booking)));
+            bookings.stream()
+                    .filter(booking -> booking.getStart().isAfter(time))
+                    .min(Comparator.comparing(Booking::getStart))
+                    .ifPresent(booking -> itemDto.setNextBooking(BookingMapper.toLittleBookingDto(booking)));
 
-            if (last.isPresent()) {
-                itemDto.setLastBooking(BookingMapper.toLittleBookingDto(last.get()));
-
-                Optional<Booking> next = bookings.stream()
-                        .filter(booking -> booking.getStart().isAfter(time))
-                        .min(Comparator.comparing(Booking::getStart));
-                next.ifPresent(booking -> itemDto.setNextBooking(BookingMapper.toLittleBookingDto(booking)));
-            }
         }
         itemDto.setComments(comments.stream()
                 .map(CommentMapper::toCommentDto)

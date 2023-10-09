@@ -54,7 +54,7 @@ public class ItemServiceImpl implements ItemService {
 
         Collection<Booking> itemBookings;
         if (item.getOwner().getId() == userId) {
-            itemBookings = new ArrayList<>(bookingRepository.findAllByItemIdIn(Set.of(item.getId())));
+            itemBookings = new ArrayList<>(bookingRepository.findAllByItemIdInAndStatus(Set.of(item.getId()), BookingStatus.APPROVED));
         } else {
             itemBookings = Collections.emptyList();
         }
@@ -68,7 +68,7 @@ public class ItemServiceImpl implements ItemService {
         Map<Long, Item> itemsByOwner = itemRepository.findAllByOwnerId(userId)
                 .stream().collect(Collectors.toMap(Item::getId, Function.identity()));
 
-        Map<Long, List<Booking>> bookingsByItems = bookingRepository.findAllByItemIdIn(itemsByOwner.keySet())
+        Map<Long, List<Booking>> bookingsByItems = bookingRepository.findAllByItemIdInAndStatus(itemsByOwner.keySet(),BookingStatus.APPROVED)
                 .stream().collect(Collectors.groupingBy(booking -> booking.getItem().getId()));
 
         Map<Long, List<Comment>> commentsByItems = commentRepository.findAllByItemIdIn(itemsByOwner.keySet())
