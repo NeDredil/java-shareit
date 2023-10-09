@@ -10,7 +10,7 @@ public interface BookingService {
 
     Booking createBooking(long userId, BookingDto bookingDto);
 
-    Booking findBookung(long userId, long bookingId);
+    Booking findBooking(long userId, long bookingId);
 
     Collection<Booking> findAllBookingsForOwner(long userId, BookingState state);
 

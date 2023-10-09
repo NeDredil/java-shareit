@@ -5,12 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.Collection;
 
 import static ru.practicum.shareit.exception.Constant.NOT_FOUND_USER;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -25,7 +27,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findUserById(long userId) {
         return userRepository.findById(userId)
-                        .orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_USER, userId)));
+                .orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_USER, userId)));
     }
 
     @Override
@@ -50,10 +52,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUserById(long userId) {
-            if (!userRepository.existsById(userId)) {
-                throw new NotFoundException(String.format(NOT_FOUND_USER, userId));
-            }
-            userRepository.deleteById(userId);
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException(String.format(NOT_FOUND_USER, userId));
         }
+        userRepository.deleteById(userId);
+    }
 
 }

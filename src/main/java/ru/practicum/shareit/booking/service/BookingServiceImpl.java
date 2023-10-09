@@ -4,14 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingState;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.exception.IncorrectDateTimeException;
-import ru.practicum.shareit.exception.NotAvailableException;
-import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.NotOwnerException;
+import ru.practicum.shareit.exception.*;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
@@ -33,9 +31,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Booking createBooking(long userId, BookingDto bookingDto) {
-        Booking booking = BookingMapper.toBooking(bookingDto);
-        if (booking.getEnd().isBefore(booking.getStart()) || booking.getEnd().isEqual(booking.getStart())) {
-            throw new IncorrectDateTimeException();
+        if (bookingDto.getEnd().isBefore(bookingDto.getStart()) || bookingDto.getEnd().isEqual(bookingDto.getStart())) {
+            throw new IncorrectDateTimeException("Неверно указана дата.");
         }
         Item item = itemRepository.findById(bookingDto.getItemId())
                 .orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_ITEM, bookingDto.getItemId())));
@@ -47,6 +44,9 @@ public class BookingServiceImpl implements BookingService {
         if (user.getId() == item.getOwner().getId()) {
             throw new NotFoundException("Пользователь не является владельцем вещи.");
         }
+        isBookingTimeAvailable(item, bookingDto.getStart(), bookingDto.getEnd());
+
+        Booking booking = BookingMapper.toBooking(bookingDto);
         booking.setItem(item);
         booking.setBooker(user);
         booking.setStatus(BookingStatus.WAITING);
@@ -56,7 +56,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Booking findBookung(long userId, long bookingId) {
+    public Booking findBooking(long userId, long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_BOOKING, bookingId)));
         if (booking.getBooker().getId() == userId || booking.getItem().getOwner().getId() == userId) {
@@ -95,11 +95,11 @@ public class BookingServiceImpl implements BookingService {
         if (booking.getItem().getOwner().getId() != userId) {
             throw new NotOwnerException("Пользователь не найден");
         }
-        if (booking.getStatus().equals(BookingStatus.APPROVED)) {
-            throw new NotAvailableException("Статус уже установлен.");
+        if (!booking.getStatus().equals(BookingStatus.WAITING)) {
+            throw new NotAvailableException("Бронирование уже одобрено или отклонено");
         }
-            booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
-            return bookingRepository.save(booking);
+        booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
+        return bookingRepository.save(booking);
     }
 
     @Override
@@ -131,6 +131,21 @@ public class BookingServiceImpl implements BookingService {
             default:
                 return bookingRepository.findAllForOwner(userId);
         }
+    }
+
+    private boolean isBookingTimeAvailable(Item item, LocalDateTime start, LocalDateTime end) {
+        Collection<Booking> existingBookings = bookingRepository.findByItem(item);
+
+        for (Booking booking : existingBookings) {
+            if (isTimeOverlap(booking.getStart(), booking.getEnd(), start, end)) {
+                throw new BookingTimeUnavailableException("Время бронирования недоступно.");
+            }
+        }
+        return true;
+    }
+
+    private boolean isTimeOverlap(LocalDateTime start1, LocalDateTime end1, LocalDateTime start2, LocalDateTime end2) {
+        return start1.isBefore(end2) && start2.isBefore(end1);
     }
 
 }

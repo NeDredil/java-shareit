@@ -1,7 +1,7 @@
-package ru.practicum.shareit.item.service;
+package ru.practicum.shareit.item.mapper;
 
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.service.BookingMapper;
+import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.LittleItemDto;
 import ru.practicum.shareit.item.model.Comment;
@@ -14,9 +14,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ItemMapper {
-
-    private ItemMapper() {
-    }
 
     public static ItemDto toItemDto(Item item) {
         ItemDto itemDto = new ItemDto();
@@ -63,13 +60,12 @@ public class ItemMapper {
                 Optional<Booking> next = bookings.stream()
                         .filter(booking -> booking.getStart().isAfter(time))
                         .min(Comparator.comparing(Booking::getStart));
-
-                if (next.isPresent()) {
-                    itemDto.setNextBooking(BookingMapper.toLittleBookingDto(next.get()));
-                }
+                next.ifPresent(booking -> itemDto.setNextBooking(BookingMapper.toLittleBookingDto(booking)));
             }
         }
-        itemDto.setComments(comments.stream().map(CommentMapper::toCommentDto).collect(Collectors.toList()));
+        itemDto.setComments(comments.stream()
+                .map(CommentMapper::toCommentDto)
+                .collect(Collectors.toList()));
         return itemDto;
     }
 
