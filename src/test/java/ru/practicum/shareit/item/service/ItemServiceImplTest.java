@@ -72,6 +72,7 @@ class ItemServiceImplTest {
         assertNotNull(result);
         assertEquals(size, result.size());
     }
+
     @Test
     void testDeleteItemByIdWhenValidParametersThenItemDeleted() {
         long userId = 1L;
