@@ -20,7 +20,12 @@ public class ItemMapper {
         itemDto.setName(item.getName());
         itemDto.setDescription(item.getDescription());
         itemDto.setAvailable(item.getAvailable());
+        itemDto.setRequestId(item.getRequest() == null ? null : item.getRequest().getId());
         return itemDto;
+    }
+
+    public static Collection<ItemDto> toItemDto(Collection<Item> items) {
+        return items.stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
     }
 
     public static Item toItem(ItemDto itemDto) {

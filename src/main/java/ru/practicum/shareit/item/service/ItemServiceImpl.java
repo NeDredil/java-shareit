@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
@@ -17,6 +18,7 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.repository.RequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -25,8 +27,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static ru.practicum.shareit.exception.Constant.NOT_FOUND_ITEM;
-import static ru.practicum.shareit.exception.Constant.NOT_FOUND_USER;
+import static ru.practicum.shareit.exception.Constant.*;
 
 @Slf4j
 @Service
@@ -37,12 +38,17 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final RequestRepository requestRepository;
 
     public Item createItem(long userId, ItemDto itemDto) {
         Item item = ItemMapper.toItem(itemDto);
         item.setOwner(userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_USER, userId))));
-
+        if (itemDto.getRequestId() != null) {
+            item.setRequest(requestRepository.findById(itemDto.getRequestId())
+                    .orElseThrow(() -> new NotFoundException(
+                            String.format(NOT_FOUND_ITEM_REQUEST, itemDto.getRequestId()))));
+        }
         Item savedItem = itemRepository.save(item);
         log.debug("Вещь с id: {} добавлена.", savedItem.getId());
         return savedItem;
@@ -64,11 +70,13 @@ public class ItemServiceImpl implements ItemService {
         return itemDto;
     }
 
-    public Collection<ItemDto> findAllItemsByUserId(long userId) {
-        Map<Long, Item> itemsByOwner = itemRepository.findAllByOwnerId(userId)
+    public Collection<ItemDto> findAllItemsByUserId(long userId, int from, int size) {
+        PageRequest page = PageRequest.of(from / size, size);
+        Map<Long, Item> itemsByOwner = itemRepository.findAllByOwnerId(userId, page)
                 .stream().collect(Collectors.toMap(Item::getId, Function.identity()));
 
-        Map<Long, List<Booking>> bookingsByItems = bookingRepository.findAllByItemIdInAndStatus(itemsByOwner.keySet(),BookingStatus.APPROVED)
+        Map<Long, List<Booking>> bookingsByItems = bookingRepository.findAllByItemIdInAndStatus(itemsByOwner.keySet(),
+                        BookingStatus.APPROVED)
                 .stream().collect(Collectors.groupingBy(booking -> booking.getItem().getId()));
 
         Map<Long, List<Comment>> commentsByItems = commentRepository.findAllByItemIdIn(itemsByOwner.keySet())
@@ -121,11 +129,12 @@ public class ItemServiceImpl implements ItemService {
         log.debug("Вещь с id: {} удалена.", itemId);
     }
 
-    public Collection<Item> getItemsBySearchQuery(String text) {
+    public Collection<Item> getItemsBySearchQuery(String text, int from, int size) {
         if (text.isBlank() || text.isEmpty()) {
             return List.of();
         }
-        Collection<Item> searched = itemRepository.getItemsBySearchQuery(text);
+        PageRequest page = PageRequest.of(from / size, size);
+        Collection<Item> searched = itemRepository.getItemsBySearchQuery(text, page);
         log.debug("Вещей найден: {}.", searched.size());
         return searched;
     }
@@ -147,5 +156,13 @@ public class ItemServiceImpl implements ItemService {
         Comment savedComment = commentRepository.save(comment);
         log.debug("Комментарий с id: {} сохранен.", savedComment.getId());
         return comment;
+    }
+
+    public Collection<Item> findAllByRequestRequestorId(long userId) {
+        return itemRepository.findAllByRequestRequestorId(userId);
+    }
+
+    public Collection<Item> findAllByRequestId(long requestId) {
+        return itemRepository.findAllByRequestId(requestId);
     }
 }

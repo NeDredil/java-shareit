@@ -12,12 +12,12 @@ public interface BookingService {
 
     Booking findBooking(long userId, long bookingId);
 
-    Collection<Booking> findAllBookingsForOwner(long userId, BookingState state);
+    Collection<Booking> findAllBookingsForOwner(long userId, BookingState state, int from, int size);
 
     Booking updateStatusBooking(long userId, long bookingId, boolean approved);
 
     void deleteBookingById(long userId, long bookingId);
 
-    Collection<Booking> findBookingForAllOwnerItems(long userId, BookingState state);
+    Collection<Booking> findBookingForAllOwnerItems(long userId, BookingState state, int from, int size);
 
 }

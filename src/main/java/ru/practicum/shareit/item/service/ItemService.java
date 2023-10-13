@@ -13,14 +13,18 @@ public interface ItemService {
 
     ItemDto findItemById(long userId, long itemId);
 
-    Collection<ItemDto> findAllItemsByUserId(long userId);
+    Collection<ItemDto> findAllItemsByUserId(long userId, int from, int size);
 
     Item updateItem(Long userId, ItemDto itemDto);
 
     void deleteItemById(long userId, long itemId);
 
-    Collection<Item> getItemsBySearchQuery(String text);
+    Collection<Item> getItemsBySearchQuery(String text, int from, int size);
 
     Comment createComment(long userId, long itemId, CommentDto commentDto);
+
+    Collection<Item> findAllByRequestRequestorId(long userId);
+
+    Collection<Item> findAllByRequestId(long requestId);
 
 }

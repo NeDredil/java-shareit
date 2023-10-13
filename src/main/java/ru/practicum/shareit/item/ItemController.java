@@ -2,6 +2,7 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -9,12 +10,15 @@ import ru.practicum.shareit.item.mapper.CommentMapper;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.service.ItemService;
 
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import javax.validation.Valid;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
+@Valid
 @RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
@@ -38,9 +42,11 @@ public class ItemController {
     }
 
     @GetMapping
-    public Collection<ItemDto> findAllItemsByUserId(@RequestHeader(SHARER_USER_ID) Long userId) {
+    public Collection<ItemDto> findAllItemsByUserId(@RequestHeader(SHARER_USER_ID) Long userId,
+                                                    @RequestParam(defaultValue = "0") @PositiveOrZero int from,
+                                                    @RequestParam(defaultValue = "10") @Positive int size) {
         log.debug("поступил запрос на просмотр владельцем всех своих вещей, id: {} ", userId);
-        return itemService.findAllItemsByUserId(userId);
+        return itemService.findAllItemsByUserId(userId, from, size);
     }
 
     @PatchMapping("/{itemId}")
@@ -52,6 +58,7 @@ public class ItemController {
     }
 
     @DeleteMapping("/{itemId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteItemById(@RequestHeader(SHARER_USER_ID) Long userId,
                                @PathVariable long itemId) {
         log.debug("поступил запрос на удаление вещи c id: {} ", itemId);
@@ -59,9 +66,11 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemDto> getItemsBySearchQuery(@RequestParam String text) {
+    public List<ItemDto> getItemsBySearchQuery(@RequestParam String text,
+                                               @RequestParam(defaultValue = "0") @PositiveOrZero int from,
+                                               @RequestParam(defaultValue = "10") @Positive int size) {
         log.debug("поступил запрос: {}, на просмотр доступной для аренды вещи", text);
-        return itemService.getItemsBySearchQuery(text).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
+        return itemService.getItemsBySearchQuery(text, from, size).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
     }
 
     @PostMapping("/{itemId}/comment")
