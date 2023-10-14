@@ -11,11 +11,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.mapper.RequestMapper;
 import ru.practicum.shareit.request.service.RequestService;
 
-import java.util.Arrays;
 import java.util.List;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
@@ -34,7 +36,7 @@ public class ItemRequestControllerTest {
     @BeforeEach
     public void setUp() {
         itemRequestDto = new ItemRequestDto();
-        itemRequestDtoList = Arrays.asList(itemRequestDto);
+        itemRequestDtoList = List.of(itemRequestDto);
     }
 
     @Test
@@ -76,5 +78,22 @@ public class ItemRequestControllerTest {
                         .param("size", "10"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().json("[{}]"));
+    }
+
+    @Test
+    public void testCreateRequest() throws Exception {
+        Long userId = 1L;
+        ItemRequestDto itemRequestDto = new ItemRequestDto();
+        itemRequestDto.setDescription("Test description");
+
+        when(requestService.createRequest(userId, itemRequestDto)).thenReturn(RequestMapper.toRequest(itemRequestDto));
+
+        mockMvc.perform(post("/requests")
+                        .header("X-Sharer-User-Id", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"description\":\"Test description\"}"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.description").value("Test description"));
     }
 }

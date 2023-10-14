@@ -16,8 +16,7 @@ import java.util.Collections;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ItemController.class)
 class ItemControllerTest {
@@ -137,5 +136,4 @@ class ItemControllerTest {
                 .andExpect(jsonPath("$[0].description").value("Description1"))
                 .andExpect(jsonPath("$[0].available").value(true));
     }
-
 }

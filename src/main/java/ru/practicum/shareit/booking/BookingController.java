@@ -34,7 +34,7 @@ public class BookingController {
     @GetMapping("/{bookingId}")
     public BookingDto findBooking(@RequestHeader(SHARER_USER_ID) Long userId,
                                   @PathVariable long bookingId) {
-        log.debug("поступил запрос на получение бронирования с id: {} от польсователя с id: {} ", bookingId, userId);
+        log.debug("поступил запрос на получение бронирования с id: {} от пользователя с id: {} ", bookingId, userId);
         return BookingMapper.toBookingDto(bookingService.findBooking(userId, bookingId));
     }
 

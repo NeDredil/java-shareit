@@ -74,5 +74,4 @@ public class CommentRepositoryTest {
         itemRepository.deleteAll();
         commentRepository.deleteAll();
     }
-
 }

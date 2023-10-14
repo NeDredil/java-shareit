@@ -5,7 +5,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.user.dto.ShortUserDto;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -14,19 +16,25 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class UserServiceTest {
 
     private UserRepository userRepository;
     private UserServiceImpl userService;
+    private User user;
 
     @BeforeEach
     public void setUp() {
         userRepository = Mockito.mock(UserRepository.class);
         userService = new UserServiceImpl(userRepository);
+        user = User.builder()
+                .id(1L)
+                .name("Test User")
+                .email("testuser@example.com")
+                .build();
     }
 
     @Test
@@ -67,7 +75,7 @@ public class UserServiceTest {
 
     @Test
     public void testUpdateUserWhenValidUserDtoThenUserUpdated() {
-        UserDto userDto = new UserDto(1L, "Test", "Test@yandex.ru");
+        UserDto userDto = new UserDto(1L, "updateTest", "updateTest@yandex.ru");
         User user = new User(1L, "Test", "Test@yandex.ru");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
@@ -76,6 +84,36 @@ public class UserServiceTest {
         userService.updateUser(userDto);
 
         verify(userRepository).save(Mockito.any(User.class));
+        assertEquals(userDto.getName(), user.getName());
+        assertEquals(userDto.getEmail(), user.getEmail());
+    }
+
+    @Test
+    public void testUpdateUserNameWhenValidUserDtoThenUserNameUpdated() {
+        UserDto userDto = new UserDto(1L, "updateTest", null);
+        User user = new User(1L, "Test", "Test@yandex.ru");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(Mockito.any(User.class))).thenReturn(user);
+
+        userService.updateUser(userDto);
+
+        verify(userRepository).save(Mockito.any(User.class));
+        assertEquals(userDto.getName(), user.getName());
+    }
+
+    @Test
+    public void testUpdateUserEmailWhenValidUserDtoThenUserNameUpdated() {
+        UserDto userDto = new UserDto(1L, null, "updateTest@yandex.ru");
+        User user = new User(1L, "Test", "Test@yandex.ru");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(Mockito.any(User.class))).thenReturn(user);
+
+        userService.updateUser(userDto);
+
+        verify(userRepository).save(Mockito.any(User.class));
+        assertEquals(userDto.getEmail(), user.getEmail());
     }
 
     @Test
@@ -94,5 +132,27 @@ public class UserServiceTest {
 
         assertThrows(NotFoundException.class, () -> userService.deleteUserById(1L));
         verify(userRepository, times(1)).existsById(anyLong());
+    }
+
+    @Test
+    public void testToLittleUserDto() {
+        User user = new User(1L, "Test", "Test@yandex.ru");
+
+        ShortUserDto shortUserDto = UserMapper.toLittleUserDto(user);
+
+        assertEquals(user.getId(), shortUserDto.getId());
+        assertEquals(user.getName(), shortUserDto.getName());
+        assertNotEquals(user.toString(), shortUserDto.toString());
+    }
+
+    @Test
+    public void testToLittleUserDtoWhenValidUserThenReturnShortUserDto() {
+        // Act
+        ShortUserDto shortUserDto = UserMapper.toLittleUserDto(user);
+
+        // Assert
+        assertThat(shortUserDto).isNotNull();
+        assertThat(shortUserDto.getId()).isEqualTo(user.getId());
+        assertThat(shortUserDto.getName()).isEqualTo(user.getName());
     }
 }
