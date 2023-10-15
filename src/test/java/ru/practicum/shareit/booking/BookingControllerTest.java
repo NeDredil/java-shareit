@@ -48,6 +48,28 @@ class BookingControllerTest {
         bookingDto.setItemId(1L);
     }
 
+
+    @SneakyThrows
+    @Test
+    void testFindAllBookingsForOwnerWhenServiceReturnsBookingsThenReturnOk() {
+        List<BookingDto> bookings = List.of(bookingDto);
+        when(bookingService.findAllBookingsForOwner(userId, BookingState.ALL, 0, 10)).thenReturn(bookings);
+
+        String result = mockMvc.perform(get("/bookings")
+                        .header("X-Sharer-User-Id", userId)
+                        .param("state", "ALL")
+                        .param("from", "0")
+                        .param("size", "10")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        assertEquals(objectMapper.writeValueAsString(bookings), result);
+        verify(bookingService).findAllBookingsForOwner(userId, BookingState.ALL, 0, 10);
+    }
+
     @SneakyThrows
     @Test
     void testCreateWhenInvokeThenReturnOk() {

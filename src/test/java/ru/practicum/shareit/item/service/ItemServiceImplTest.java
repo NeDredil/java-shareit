@@ -8,9 +8,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.NotOwnerException;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.LittleItemDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
@@ -49,6 +51,8 @@ class ItemServiceImplTest {
     private User owner;
     private User user;
     private Item item;
+    private Booking booking;
+    private Comment comment;
     private final int from = 0;
     private final int size = 10;
 
@@ -72,6 +76,24 @@ class ItemServiceImplTest {
                 .description("itemDescTest")
                 .available(true)
                 .owner(owner)
+                .build();
+
+        LocalDateTime time = LocalDateTime.now();
+
+        booking = Booking.builder()
+                .start(time.minusHours(1))
+                .end(time.minusMinutes(10))
+                .item(item)
+                .booker(owner)
+                .status(BookingStatus.APPROVED)
+                .build();
+
+        comment = Comment.builder()
+                .id(5L)
+                .text("comment")
+                .created(LocalDateTime.now())
+                .author(owner)
+                .item(item)
                 .build();
     }
 
@@ -449,5 +471,23 @@ class ItemServiceImplTest {
         List<Item> result = new ArrayList<>(itemService.findAllByRequestId(requestId));
 
         assertEquals(items, result);
+    }
+
+    @Test
+    void createCommentWhenInvokeThenReturnSavedComment() {
+        CommentDto commentDto = new CommentDto();
+        commentDto.setText("comment");
+
+        List<Booking> notEmpty = List.of(new Booking());
+        when(userRepository.findById(owner.getId())).thenReturn(Optional.ofNullable(owner));
+        when(itemRepository.findById(item.getId())).thenReturn(Optional.of(item));
+        when(bookingRepository.findAllByBookerIdAndItemIdAndEndIsBeforeAndStatusIs(any(), any(), any(),any())).thenReturn(notEmpty);
+        when(commentRepository.save(any(Comment.class))).thenReturn(comment);
+
+        Comment result = itemService.createComment(owner.getId(),item.getId(),commentDto);
+
+        verify(commentRepository).save(any());
+        assertEquals(comment.getText(), result.getText());
+        assertEquals(comment.getAuthor(), result.getAuthor());
     }
 }
