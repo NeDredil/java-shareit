@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.BookingState;
 import ru.practicum.shareit.booking.service.BookingService;
 
@@ -12,7 +11,6 @@ import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.Valid;
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Valid
@@ -28,14 +26,14 @@ public class BookingController {
     public BookingDto createBooking(@RequestHeader(SHARER_USER_ID) Long userId,
                                     @RequestBody @Valid BookingDto bookingDto) {
         log.debug("поступил запрос на бронирование, от пользователя с id: {}", userId);
-        return BookingMapper.toBookingDto(bookingService.createBooking(userId, bookingDto));
+        return bookingService.createBooking(userId, bookingDto);
     }
 
     @GetMapping("/{bookingId}")
     public BookingDto findBooking(@RequestHeader(SHARER_USER_ID) Long userId,
                                   @PathVariable long bookingId) {
         log.debug("поступил запрос на получение бронирования с id: {} от пользователя с id: {} ", bookingId, userId);
-        return BookingMapper.toBookingDto(bookingService.findBooking(userId, bookingId));
+        return bookingService.findBooking(userId, bookingId);
     }
 
     @GetMapping
@@ -48,10 +46,7 @@ public class BookingController {
         }
         log.debug("поступил запрос на получение списка всех бронирований с состоянием {} " +
                 "от пользователя с id: {}  ", state, userId);
-        return bookingService.findAllBookingsForOwner(userId, BookingState.toBookingState(state), from, size)
-                .stream()
-                .map(BookingMapper::toBookingDto)
-                .collect(Collectors.toList());
+        return bookingService.findAllBookingsForOwner(userId, BookingState.toBookingState(state), from, size);
     }
 
     @PatchMapping("/{bookingId}")
@@ -59,7 +54,7 @@ public class BookingController {
                                           @PathVariable long bookingId,
                                           @RequestParam Boolean approved) {
         log.debug("поступил запрос на редактирование бронирования id: {} владельцем c id: {} ", bookingId, userId);
-        return BookingMapper.toBookingDto(bookingService.updateStatusBooking(userId, bookingId, approved));
+        return bookingService.updateStatusBooking(userId, bookingId, approved);
     }
 
     @DeleteMapping("/{bookingId}")
@@ -79,10 +74,7 @@ public class BookingController {
         }
         log.debug("поступил запрос на получение списка бронирований для всех вещей с состоянием {} " +
                 "от пользователя с id: {}  ", state, userId);
-        return bookingService.findBookingForAllOwnerItems(userId, BookingState.toBookingState(state), from, size)
-                .stream()
-                .map(BookingMapper::toBookingDto)
-                .collect(Collectors.toList());
+        return bookingService.findBookingForAllOwnerItems(userId, BookingState.toBookingState(state), from, size);
     }
 
 }

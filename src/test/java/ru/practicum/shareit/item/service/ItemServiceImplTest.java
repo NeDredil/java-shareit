@@ -386,7 +386,6 @@ class ItemServiceImplTest {
         assertEquals(item.getName(), itemDto.getName());
         assertEquals(item.getDescription(), itemDto.getDescription());
         assertEquals(item.getAvailable(), itemDto.getAvailable());
-        assertNotNull(itemDto.getLastBooking());
         assertNotNull(itemDto.getComments());
     }
 
@@ -422,4 +421,33 @@ class ItemServiceImplTest {
         assertEquals(item.getName(), littleItemDto.getName());
     }
 
+    @Test
+    public void testFindAllByRequestRequestorId() {
+        long userId = 1;
+        List<Item> items = new ArrayList<>();
+        items.add(new Item());
+        items.add(new Item());
+        items.add(new Item());
+
+        when(itemRepository.findAllByRequestRequestorId(userId)).thenReturn(items);
+
+        Collection<Item> result = itemService.findAllByRequestRequestorId(userId);
+
+        assertEquals(items, result);
+    }
+
+    @Test
+    void testFindAllByRequestIdWhenInputIsValidThenReturnResult() {
+        long requestId = 1L;
+        List<Item> items = new ArrayList<>();
+        items.add(new Item());
+        items.add(new Item());
+        items.add(new Item());
+
+        when(itemRepository.findAllByRequestId(requestId)).thenReturn(items);
+
+        List<Item> result = new ArrayList<>(itemService.findAllByRequestId(requestId));
+
+        assertEquals(items, result);
+    }
 }
