@@ -5,12 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.service.UserService;
 
 import javax.validation.Valid;
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -22,26 +20,26 @@ public class UserController {
     @PostMapping
     public UserDto createUser(@RequestBody @Valid UserDto userDto) {
         log.debug("поступил запрос на создание пользователя");
-        return UserMapper.toUserDto(userService.createUser(userDto));
+        return userService.createUser(userDto);
     }
 
     @GetMapping("/{userId}")
     public UserDto findUserById(@PathVariable long userId) {
         log.debug("поступил запрос на получение данных пользователя c id: {} ", userId);
-        return UserMapper.toUserDto(userService.findUserById(userId));
+        return userService.findUserById(userId);
     }
 
     @GetMapping
     public Collection<UserDto> findAllUsers() {
         log.debug("поступил запрос на получение данных всех пользователей");
-        return userService.findAllUsers().stream().map(UserMapper::toUserDto).collect(Collectors.toList());
+        return userService.findAllUsers();
     }
 
     @PatchMapping("/{userId}")
     public UserDto updateUser(@PathVariable long userId, @RequestBody UserDto userDto) {
         log.debug("поступил запрос на изменение данных пользователя c id: {} ", userId);
         userDto.setId(userId);
-        return UserMapper.toUserDto(userService.updateUser(userDto));
+        return userService.updateUser(userDto);
     }
 
     @DeleteMapping("/{userId}")

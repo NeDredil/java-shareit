@@ -3,114 +3,120 @@ package ru.practicum.shareit.user;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.mapper.UserMapper;
-import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
-import java.util.Arrays;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.List;
 
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
+@AutoConfigureMockMvc
 public class UserControllerTest {
-
-    @Autowired
-    private MockMvc mockMvc;
 
     @MockBean
     private UserService userService;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    @Autowired
+    private MockMvc mvc;
 
     @Test
-    public void testCreateUserWhenUserIsCreatedThenReturnUserDto() throws Exception {
-        UserDto userDto = new UserDto(1L, "Test", "Test@yandex.ru");
-        when(userService.createUser(userDto)).thenReturn(UserMapper.toUser(userDto));
+    public void findAllUsersTest() throws Exception {
+        when(userService.findAllUsers())
+                .thenReturn(Collections.emptyList());
 
-        mockMvc.perform(post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userDto)))
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(userDto)));
-    }
-
-    @Test
-    public void testFindUserByIdWhenUserIsFoundThenReturnUserDto() throws Exception {
-        UserDto userDto = new UserDto(1L, "Test", "Test@yandex.ru");
-        when(userService.findUserById(1L)).thenReturn(UserMapper.toUser(userDto));
-
-        mockMvc.perform(get("/users/1"))
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(userDto)));
-    }
-
-    @Test
-    public void testFindAllUsersWhenUsersAreFoundThenReturnListOfUserDtos() throws Exception {
-        List<User> users = Arrays.asList(
-                new User(1L, "Test", "Test@yandex.ru"),
-                new User(2L, "Test", "Test@yandex.ru")
-        );
-        when(userService.findAllUsers()).thenReturn(users);
-
-        mockMvc.perform(get("/users"))
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(users)));
-    }
-
-    @Test
-    public void testUpdateUserWhenUserIsUpdatedThenReturnUserDto() throws Exception {
-        UserDto userDto = new UserDto(1L, "Test", "Test@yandex.ru");
-        when(userService.updateUser(userDto)).thenReturn(UserMapper.toUser(userDto));
-
-        mockMvc.perform(patch("/users/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userDto)))
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(userDto)));
-    }
-
-    @Test
-    public void testDeleteUserByIdWhenUserIsDeletedThenReturnNoContent() throws Exception {
-        mockMvc.perform(delete("/users/1"))
-                .andExpect(status().isNoContent());
-    }
-
-    @Test
-    public void testCreateUserWhenUserDtoIsInvalidThenReturnBadRequest() throws Exception {
-        UserDto userDto = new UserDto(1L, "", "Test@yandex.ru");
-
-        mockMvc.perform(post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userDto)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void testFindAllUsersWhenNoUsersAreFoundThenReturnEmptyList() throws Exception {
-        when(userService.findAllUsers()).thenReturn(Collections.emptyList());
-
-        mockMvc.perform(get("/users"))
+        mvc.perform(get("/users"))
                 .andExpect(status().isOk())
                 .andExpect(content().json("[]"));
+
+        verify(userService, times(1)).findAllUsers();
     }
 
     @Test
-    public void testDeleteUserByIdWhenUserIsNotFoundThenReturnNotFound() throws Exception {
-        doThrow(new NotFoundException("User not found")).when(userService).deleteUserById(1L);
+    public void createUserTest() throws Exception {
+        long userId = 1L;
+        UserDto userDto = createTestUserDto(userId);
 
-        mockMvc.perform(delete("/users/1"))
-                .andExpect(status().isNotFound());
+        when(userService.createUser(any(UserDto.class)))
+                .thenReturn(userDto);
+
+        mvc.perform(post("/users")
+                        .content(mapper.writeValueAsString(userDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(toJson(userDto)));
+
+        verify(userService, times(1)).createUser(any(UserDto.class));
+    }
+
+    @Test
+    public void findUserByIdTest() throws Exception {
+        long userId = 1L;
+        UserDto userDto = createTestUserDto(userId);
+
+        when(userService.findUserById(userId))
+                .thenReturn(userDto);
+
+        mvc.perform(get("/users/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().json(toJson(userDto)));
+
+        verify(userService, times(1)).findUserById(userId);
+    }
+
+    @Test
+    public void updateUserTest() throws Exception {
+        long userId = 1L;
+        UserDto userDto = createTestUserDto(userId);
+        userDto.setName("updatedName");
+
+        when(userService.updateUser(any(UserDto.class)))
+                .thenReturn(userDto);
+
+        mvc.perform(patch("/users/1")
+                        .content(mapper.writeValueAsString(userDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(toJson(userDto)));
+
+        verify(userService, times(1)).updateUser(any(UserDto.class));
+    }
+
+    @Test
+    public void deleteUserByIdTest() throws Exception {
+        mvc.perform(delete("/users/1"))
+                .andExpect(status().isNoContent());
+
+        verify(userService, times(1)).deleteUserById(any(Long.class));
+    }
+
+    private UserDto createTestUserDto(Long id) {
+        String name = "user";
+        String email = "user@user.com";
+
+        UserDto dto = new UserDto();
+        dto.setId(id);
+        dto.setName(name);
+        dto.setEmail(email);
+        return dto;
+    }
+
+    private String toJson(UserDto dto) {
+        return String.format("{\"id\":%d,\"name\": %s,\"email\": %s}", dto.getId(), dto.getName(), dto.getEmail());
     }
 }

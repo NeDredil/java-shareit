@@ -2,6 +2,9 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.BookingState;
@@ -13,7 +16,7 @@ import javax.validation.Valid;
 import java.util.Collection;
 
 @Slf4j
-@Valid
+@Validated
 @RestController
 @RequestMapping(path = "/bookings")
 @RequiredArgsConstructor
@@ -41,12 +44,10 @@ public class BookingController {
                                                           @RequestParam(defaultValue = "ALL") String state,
                                                           @RequestParam(defaultValue = "0") @PositiveOrZero int from,
                                                           @RequestParam(defaultValue = "10") @Positive int size) {
-        if (from < 0) {
-            throw new IllegalArgumentException("Параметр 'from' должен быть больше или равен 0");
-        }
         log.debug("поступил запрос на получение списка всех бронирований с состоянием {} " +
                 "от пользователя с id: {}  ", state, userId);
-        return bookingService.findAllBookingsForOwner(userId, BookingState.toBookingState(state), from, size);
+        PageRequest page = PageRequest.of(from / size, size, Sort.by("start").descending());
+        return bookingService.findAllBookingsForOwner(userId, BookingState.toBookingState(state), page);
     }
 
     @PatchMapping("/{bookingId}")
@@ -69,12 +70,10 @@ public class BookingController {
                                                               @RequestParam(defaultValue = "ALL") String state,
                                                               @RequestParam(defaultValue = "0") @PositiveOrZero int from,
                                                               @RequestParam(defaultValue = "10") @Positive int size) {
-        if (from < 0) {
-            throw new IllegalArgumentException("Параметр 'from' должен быть больше или равен 0");
-        }
         log.debug("поступил запрос на получение списка бронирований для всех вещей с состоянием {} " +
                 "от пользователя с id: {}  ", state, userId);
-        return bookingService.findBookingForAllOwnerItems(userId, BookingState.toBookingState(state), from, size);
+        PageRequest page = PageRequest.of(from / size, size, Sort.by("start").descending());
+        return bookingService.findBookingForAllOwnerItems(userId, BookingState.toBookingState(state), page);
     }
 
 }

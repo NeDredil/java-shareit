@@ -3,7 +3,6 @@ package ru.practicum.shareit.booking.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
@@ -69,11 +68,10 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Collection<BookingDto> findAllBookingsForOwner(long userId, BookingState state, int from, int size) {
+    public Collection<BookingDto> findAllBookingsForOwner(long userId, BookingState state, PageRequest page) {
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException(String.format(NOT_FOUND_USER, userId));
         }
-        PageRequest page = PageRequest.of(from / size, size, Sort.by("start").descending());
         final LocalDateTime time = LocalDateTime.now();
         Collection<Booking> bookings;
         switch (state) {
@@ -97,6 +95,7 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toBookingDto(bookings);
     }
 
+    @Override
     public BookingDto updateStatusBooking(long userId, long bookingId, boolean approved) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_BOOKING, bookingId)));
@@ -121,12 +120,12 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    public Collection<BookingDto> findBookingForAllOwnerItems(long userId, BookingState state, int from, int size) {
+    @Override
+    public Collection<BookingDto> findBookingForAllOwnerItems(long userId, BookingState state, PageRequest page) {
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException(String.format(NOT_FOUND_USER, userId));
         }
         Collection<Booking> bookings;
-        PageRequest page = PageRequest.of(from / size, size, Sort.by("start").descending());
         LocalDateTime time = LocalDateTime.now();
         switch (state) {
             case PAST:

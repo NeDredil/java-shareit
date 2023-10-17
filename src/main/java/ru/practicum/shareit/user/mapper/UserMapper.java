@@ -4,6 +4,9 @@ import ru.practicum.shareit.user.dto.ShortUserDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
+import java.util.Collection;
+import java.util.stream.Collectors;
+
 public class UserMapper {
 
     public static UserDto toUserDto(User user) {
@@ -27,5 +30,9 @@ public class UserMapper {
                 .id(user.getId())
                 .name(user.getName())
                 .build();
+    }
+
+    public static Collection<UserDto> listToUserDto(Collection<User> users) {
+        return users.stream().map(UserMapper::toUserDto).collect(Collectors.toList());
     }
 }

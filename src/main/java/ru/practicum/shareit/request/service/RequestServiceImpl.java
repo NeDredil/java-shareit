@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.exception.Constant.*;
@@ -36,25 +35,24 @@ public class RequestServiceImpl implements RequestService {
     private final RequestRepository requestRepository;
 
     @Override
-    public ItemRequest createRequest(Long userId, ItemRequestDto itemRequestDto) {
+    public ItemRequestDto createRequest(Long userId, ItemRequestDto itemRequestDto) {
         ItemRequest itemRequest = RequestMapper.toRequest(itemRequestDto);
         itemRequest.setRequestor(userRepository.findById(userId).orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_USER, userId))));
         itemRequest.setCreated(LocalDateTime.now());
-        return requestRepository.save(itemRequest);
+        return RequestMapper.toRequestDto(requestRepository.save(itemRequest));
     }
 
     @Override
-    public List<ItemRequestDto> findRequestsById(Long userId) {
+    public List<ItemRequestDto> findRequestsByUserId(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException(String.format(NOT_FOUND_USER, userId));
         }
-        Map<Long, ItemRequest> collectItemRequest = requestRepository.findAllByRequestorId(userId)
-                .stream().collect(Collectors.toMap(ItemRequest::getId, Function.identity()));
+        List<ItemRequest> itemRequests = requestRepository.findAllByRequestorId(userId);
 
         Map<Long, List<Item>> collectItem = itemRepository.findAllByRequestRequestorId(userId)
                 .stream().collect(Collectors.groupingBy(item -> item.getRequest().getId()));
 
-        return collectItemRequest.values().stream()
+        return itemRequests.stream()
                 .map(itemRequest -> RequestMapper.toRequestDto(itemRequest,
                         collectItem.getOrDefault(itemRequest.getRequestor().getId(), Collections.emptyList())))
                 .collect(Collectors.toList());
@@ -86,9 +84,9 @@ public class RequestServiceImpl implements RequestService {
                 .collect(Collectors.toList());
     }
 
-    public ItemRequest getItemRequestById(Long requestId) {
-        return requestRepository.findById(requestId)
-                .orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_ITEM_REQUEST, requestId)));
+    public ItemRequestDto getItemRequestById(Long requestId) {
+        return RequestMapper.toRequestDto(requestRepository.findById(requestId)
+                .orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_ITEM_REQUEST, requestId))));
     }
 
 }

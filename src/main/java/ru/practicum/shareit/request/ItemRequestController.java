@@ -2,9 +2,9 @@ package ru.practicum.shareit.request;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
-import ru.practicum.shareit.request.mapper.RequestMapper;
 import ru.practicum.shareit.request.service.RequestService;
 
 import javax.validation.Valid;
@@ -13,7 +13,7 @@ import javax.validation.constraints.PositiveOrZero;
 import java.util.Collection;
 
 @Slf4j
-@Valid
+@Validated
 @RestController
 @RequestMapping(path = "/requests")
 @RequiredArgsConstructor
@@ -26,13 +26,13 @@ public class ItemRequestController {
     public ItemRequestDto createRequest(@RequestHeader(SHARER_USER_ID) Long userId,
                                         @RequestBody @Valid ItemRequestDto itemRequestDto) {
         log.debug("поступил запрос на добавление запроса вещи: {} пользователя с id: {}.", itemRequestDto, userId);
-        return RequestMapper.toRequestDto(requestService.createRequest(userId, (itemRequestDto)));
+        return requestService.createRequest(userId, itemRequestDto);
     }
 
     @GetMapping()
     public Collection<ItemRequestDto> findRequestsById(@RequestHeader(SHARER_USER_ID) Long userId) {
         log.debug("поступил запрос на получение списка запросов вещи пользователя с id: {} .", userId);
-        return requestService.findRequestsById(userId);
+        return requestService.findRequestsByUserId(userId);
     }
 
     @GetMapping("{itemId}")

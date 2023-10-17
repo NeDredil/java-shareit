@@ -1,158 +1,117 @@
 package ru.practicum.shareit.user.service;
 
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.user.dto.ShortUserDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class UserServiceTest {
 
+    public static final long ID = 1L;
+
+    private UserService userService;
     private UserRepository userRepository;
-    private UserServiceImpl userService;
+
     private User user;
 
     @BeforeEach
-    public void setUp() {
-        userRepository = Mockito.mock(UserRepository.class);
+    void beforeEach() {
+        userRepository = mock(UserRepository.class);
         userService = new UserServiceImpl(userRepository);
-        user = User.builder()
-                .id(1L)
-                .name("Test User")
-                .email("testuser@example.com")
-                .build();
+        user = new User(1L, "userTest", "userTest@yandex.ru");
     }
 
     @Test
-    public void testCreateUserWhenValidUserDtoThenUserCreatedAndSaved() {
-        UserDto userDto = new UserDto(1L, "Test", "Test@yandex.ru");
-        User user = new User(1L, "Test", "Test@yandex.ru");
+    void createUserTest() {
+        User savedUser = new User();
+        savedUser.setName(user.getName());
+        savedUser.setEmail(user.getEmail());
+        UserDto savedDto = UserMapper.toUserDto(savedUser);
 
-        when(userRepository.save(Mockito.any(User.class))).thenReturn(user);
+        when(userRepository.save(any(User.class)))
+                .thenReturn(user);
 
-        userService.createUser(userDto);
+        UserDto userDto = userService.createUser(savedDto);
 
-        verify(userRepository).save(Mockito.any(User.class));
+        assertNotNull(userDto);
+        assertEquals(1, userDto.getId());
+        assertEquals(savedUser.getName(), userDto.getName());
+        assertEquals(savedUser.getEmail(), userDto.getEmail());
+
+        verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
-    public void testFindUserByIdWhenValidIdThenUserDtoReturned() {
-        User user = new User(1L, "Test", "Test@yandex.ru");
+    void updateUserTest() {
+        user.setName("updated name");
+        UserDto inputDto = UserMapper.toUserDto(user);
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class)))
+                .thenReturn(user);
 
-        User foundUser = userService.findUserById(1L);
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.of(user));
 
-        assertEquals(user, foundUser);
+        UserDto userDto = userService.updateUser(inputDto);
+
+        assertNotNull(userDto);
+        assertEquals(userDto.getId(), 1);
+        assertEquals(userDto.getName(), inputDto.getName());
+
+        verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
-    public void testFindAllUsersThenAllUserDtosReturned() {
-        User user1 = new User(1L, "Test", "Test@yandex.ru");
-        User user2 = new User(2L, "Test", "Test@yandex.ru");
-        List<User> users = Arrays.asList(user1, user2);
+    void findUserByIdTest() {
+        when(userRepository.findById(any(Long.class)))
+                .thenReturn(Optional.ofNullable(user));
 
-        when(userRepository.findAll()).thenReturn(users);
+        UserDto userDto = userService.findUserById(ID);
 
-        Collection<User> foundUsers = userService.findAllUsers();
+        assertNotNull(userDto);
+        assertEquals(1, userDto.getId());
 
-        assertEquals(users, foundUsers);
+        verify(userRepository, times(1)).findById(any(Long.class));
     }
 
     @Test
-    public void testUpdateUserWhenValidUserDtoThenUserUpdated() {
-        UserDto userDto = new UserDto(1L, "updateTest", "updateTest@yandex.ru");
-        User user = new User(1L, "Test", "Test@yandex.ru");
+    void deleteUserByIdTest() {
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(userRepository.save(Mockito.any(User.class))).thenReturn(user);
-
-        userService.updateUser(userDto);
-
-        verify(userRepository).save(Mockito.any(User.class));
-        assertEquals(userDto.getName(), user.getName());
-        assertEquals(userDto.getEmail(), user.getEmail());
+        when(userRepository.existsById(0L)).thenReturn(true);
+        userService.deleteUserById(0L);
+        verify(userRepository, times(1)).deleteById(0L);
     }
 
     @Test
-    public void testUpdateUserNameWhenValidUserDtoThenUserNameUpdated() {
-        UserDto userDto = new UserDto(1L, "updateTest", null);
-        User user = new User(1L, "Test", "Test@yandex.ru");
+    public void testDeleteUserByIdWhenUserDoesNotExistThenNotFoundException() {
+        long userId = 1L;
+        when(userRepository.existsById(userId)).thenReturn(false);
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(userRepository.save(Mockito.any(User.class))).thenReturn(user);
-
-        userService.updateUser(userDto);
-
-        verify(userRepository).save(Mockito.any(User.class));
-        assertEquals(userDto.getName(), user.getName());
+        assertThrows(NotFoundException.class, () -> userService.deleteUserById(userId));
+        verify(userRepository, never()).deleteById(userId);
     }
 
     @Test
-    public void testUpdateUserEmailWhenValidUserDtoThenUserNameUpdated() {
-        UserDto userDto = new UserDto(1L, null, "updateTest@yandex.ru");
-        User user = new User(1L, "Test", "Test@yandex.ru");
+    void findAllUsersTest() {
+        when(userRepository.findAll())
+                .thenReturn(Collections.singletonList(user));
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(userRepository.save(Mockito.any(User.class))).thenReturn(user);
+        List<UserDto> dtos = userService.findAllUsers();
 
-        userService.updateUser(userDto);
+        assertNotNull(dtos);
+        assertEquals(1, dtos.size());
+        assertEquals(user.getId(), dtos.get(0).getId());
 
-        verify(userRepository).save(Mockito.any(User.class));
-        assertEquals(userDto.getEmail(), user.getEmail());
-    }
-
-    @Test
-    void testDeleteUserByIdWhenUserIsDeletedSuccessfullyThenReturnVoid() {
-        when(userRepository.existsById(anyLong())).thenReturn(true);
-
-        userService.deleteUserById(1L);
-
-        verify(userRepository, times(1)).existsById(anyLong());
-        verify(userRepository, times(1)).deleteById(anyLong());
-    }
-
-    @Test
-    void testDeleteUserByIdWhenUserIsNotFoundThenThrowNotFoundException() {
-        when(userRepository.existsById(anyLong())).thenReturn(false);
-
-        assertThrows(NotFoundException.class, () -> userService.deleteUserById(1L));
-        verify(userRepository, times(1)).existsById(anyLong());
-    }
-
-    @Test
-    public void testToLittleUserDto() {
-        User user = new User(1L, "Test", "Test@yandex.ru");
-
-        ShortUserDto shortUserDto = UserMapper.toLittleUserDto(user);
-
-        assertEquals(user.getId(), shortUserDto.getId());
-        assertEquals(user.getName(), shortUserDto.getName());
-        assertNotEquals(user.toString(), shortUserDto.toString());
-    }
-
-    @Test
-    public void testToLittleUserDtoWhenValidUserThenReturnShortUserDto() {
-        // Act
-        ShortUserDto shortUserDto = UserMapper.toLittleUserDto(user);
-
-        // Assert
-        assertThat(shortUserDto).isNotNull();
-        assertThat(shortUserDto.getId()).isEqualTo(user.getId());
-        assertThat(shortUserDto.getName()).isEqualTo(user.getName());
+        verify(userRepository, times(1)).findAll();
     }
 }

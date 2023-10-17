@@ -28,6 +28,10 @@ public class ItemMapper {
         return items.stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
     }
 
+    public static Collection<Item> toItem(Collection<ItemDto> items) {
+        return items.stream().map(ItemMapper::toItem).collect(Collectors.toList());
+    }
+
     public static Item toItem(ItemDto itemDto) {
         Item item = new Item();
         item.setId(itemDto.getId());
