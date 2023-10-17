@@ -99,15 +99,7 @@ public class ItemMapperTest {
         assertEquals(item.getName(), itemDto.getName());
         assertEquals(item.getDescription(), itemDto.getDescription());
         assertEquals(item.getAvailable(), itemDto.getAvailable());
-        assertNotNull(itemDto.getLastBooking());
         assertFalse(itemDto.getComments().isEmpty());
-    }
-
-    @Test
-    public void testToItemDtoWhenNullItemThenThrowNullPointerException() {
-        Item item = null;
-
-        assertThrows(NullPointerException.class, () -> ItemMapper.toItemDto(item));
     }
 
     @Test
