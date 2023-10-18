@@ -9,7 +9,7 @@ import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-import java.util.Collection;
+import java.util.List;
 
 import static ru.practicum.shareit.exception.Constant.NOT_FOUND_USER;
 
@@ -20,23 +20,23 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public User createUser(UserDto userDto) {
-        return userRepository.save(UserMapper.toUser(userDto));
+    public UserDto createUser(UserDto userDto) {
+        return UserMapper.toUserDto(userRepository.save(UserMapper.toUser(userDto)));
     }
 
     @Override
-    public User findUserById(long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_USER, userId)));
+    public UserDto findUserById(long userId) {
+        return UserMapper.toUserDto(userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_USER, userId))));
     }
 
     @Override
-    public Collection<User> findAllUsers() {
-        return userRepository.findAll();
+    public List<UserDto> findAllUsers() {
+        return (List<UserDto>) UserMapper.listToUserDto(userRepository.findAll());
     }
 
     @Override
-    public User updateUser(UserDto userDto) {
+    public UserDto updateUser(UserDto userDto) {
         User user = UserMapper.toUser(userDto);
         User userUpdate = userRepository.findById(userDto.getId())
                 .orElseThrow(() -> new NotFoundException(String.format(NOT_FOUND_USER, userDto.getId())));
@@ -47,7 +47,7 @@ public class UserServiceImpl implements UserService {
         if (user.getName() != null) {
             userUpdate.setName(user.getName());
         }
-        return userRepository.save(userUpdate);
+        return UserMapper.toUserDto(userRepository.save(userUpdate));
     }
 
     @Override
